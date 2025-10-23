@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Resume Upload</title>
+</head>
+<body>
+    <h2>Upload Your Resume</h2>
+    <form id="resumeForm">
+        <input type="file" name="resume" id="resume" accept=".pdf,.docx" required />
+        <button type="submit">Upload</button>
+    </form>
+
+    <h3>Response:</h3>
+    <pre id="response"></pre>
+
+    <script>
+        const form = document.getElementById('resumeForm');
+        const responseEl = document.getElementById('response');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const fileInput = document.getElementById('resume');
+            const formData = new FormData();
+            formData.append('resume', fileInput.files[0]);
+
+            try {
+                const res = await fetch('/api/upload_resume/', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                responseEl.textContent = JSON.stringify(data, null, 2);
+            } catch (err) {
+                responseEl.textContent = 'Error: ' + err;
+            }
+        });
+    </script>
+</body>
+</html>
