@@ -14,12 +14,47 @@ from django.http import HttpResponse
 from reportlab.pdfgen import canvas
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from rest_framework.permissions import AllowAny
+from rest_framework import status
+from rest_framework_simplejwt.views import TokenObtainPairView
+from .serializers import EmployerSignupSerializer, InterviewerSignupSerializer, MyTokenObtainPairSerializer
+
+class LoginView(TokenObtainPairView):
+    permission_classes = [AllowAny]
+    serializer_class = MyTokenObtainPairSerializer
+
+class EmployerSignupView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = EmployerSignupSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Employer registered successfully"}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class InterviewerSignupView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = InterviewerSignupSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Interviewer registered successfully"}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 def test_position(request):
     return render(request, 'resume_app/test_position.html')
 
 def test_candidate(request):
     return render(request, 'resume_app/test_candidate.html')
+
+def test_employer_signup(request):
+    return render(request, 'resume_app/employer_signup.html')
+
+def test_interviwer_signup(request):
+    return render(request, 'resume_app/interviewer_signup.html')
 
 def test_jd(request):
     return render(request, 'resume_app/jd.html')

@@ -1,8 +1,40 @@
 from django.db import models
 from django.utils import timezone
+from django.conf import settings
+
+from django.contrib.auth.models import AbstractUser
+
+class User(AbstractUser):
+    ROLE_CHOICES = [
+        ('admin', 'Admin'),
+        ('employer', 'Employer'),
+        ('interviewer', 'Interviewer'),
+    ]
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+    contact_number = models.CharField(max_length=20, blank=True, null=True)
+    company_name = models.CharField(max_length=255, blank=True, null=True)
+
+    # Interviewer-specific fields
+    state = models.CharField(max_length=100, blank=True, null=True)
+    city = models.CharField(max_length=100, blank=True, null=True)
+    experience = models.FloatField(blank=True, null=True)
+    domain = models.CharField(max_length=100, blank=True, null=True)
+    resume_file = models.FileField(upload_to='interviewer_resumes/', blank=True, null=True)
+    keywords = models.JSONField(default=list, blank=True)  # list of skills/keywords
+
+    def __str__(self):
+        return f"{self.username} ({self.role})"
 
 # ---------------- Position Model ----------------
 class Position(models.Model):
+    employer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='positions',
+        limit_choices_to={'role': 'employer'},
+        null=True,    # allow null temporarily
+        blank=True    # allow blank in forms # ensures only employers can own positions
+    )
     job_title = models.CharField(max_length=255, default="Unknown")
     domain = models.CharField(max_length=255, default="Unknown")
     exp_from = models.IntegerField(default=0)
@@ -19,6 +51,14 @@ class Position(models.Model):
 
 # ---------------- Candidate Model ----------------
 class Candidate(models.Model):
+    employer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='candidates',
+        limit_choices_to={'role': 'employer'},
+        null=True,    # allow null temporarily
+        blank=True    # allow blank in forms
+    )
     position = models.ForeignKey(Position, on_delete=models.CASCADE, null=True)
     domain = models.CharField(max_length=255, default="Unknown")
     mandatory_skills = models.JSONField(default=list)
