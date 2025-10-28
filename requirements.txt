@@ -1,0 +1,21 @@
+# Django Framework
+Django>=4.0
+
+# Django REST Framework for building the APIs
+djangorestframework>=3.14
+
+# AWS S3 integration (used by boto3)
+boto3>=1.33
+
+# Google Gemini API SDK for LLM-based resume parsing
+google-genai>=0.1  # Or the latest stable version
+
+# PDF parsing library (used in extract_text_from_resume)
+pdfminer.six>=20221105
+
+# DOCX parsing library (used in extract_text_from_resume)
+python-docx>=0.8
+
+# Required for serving media/static files (good practice for development)
+# Optional, but useful if you use Django Storages later
+# django-storages>=1.14

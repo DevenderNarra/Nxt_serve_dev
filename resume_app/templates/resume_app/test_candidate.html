@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Candidate</title>
+</head>
+<body>
+    <h2>Add Candidate</h2>
+    <form id="candidateForm" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label>Position:
+            <select name="position_id" id="positionSelect" required>
+                <option value="">Select Position</option>
+            </select>
+        </label><br/><br/>
+
+        <label>Domain: <input type="text" name="domain" id="domainInput" /></label><br/><br/>
+        <label>Mandatory Skills: <textarea name="mandatory_skills" id="mandatorySkills" readonly></textarea></label><br/><br/>
+        <label>Optional Skills: <textarea name="optional_skills" id="optionalSkills" readonly></textarea></label><br/><br/>
+        <label>Job Description File: <input type="text" id="jdFile" readonly /></label><br/><br/>
+        <label>Interview Instructions: <textarea name="interview_instructions" id="interviewInstructions" readonly></textarea></label><br/><br/>
+
+        <label>Resume File: <input type="file" name="resume_file" accept=".pdf,.docx" required /></label><br/><br/>
+        <label>Preferred Timings: <input type="text" name="preferred_timings" /></label><br/><br/>
+        <button type="submit">Add Candidate</button>
+    </form>
+
+    <h3>Response:</h3>
+    <pre id="response"></pre>
+
+    <script>
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const form = document.getElementById('candidateForm');
+        const responseEl = document.getElementById('response');
+        const positionSelect = document.getElementById('positionSelect');
+
+        const domainInput = document.getElementById('domainInput');
+        const mandatorySkills = document.getElementById('mandatorySkills');
+        const optionalSkills = document.getElementById('optionalSkills');
+        const jdFile = document.getElementById('jdFile');
+        const interviewInstructions = document.getElementById('interviewInstructions');
+
+        let positions = [];
+
+        // Fetch positions dynamically
+        async function loadPositions() {
+            try {
+                const res = await fetch('/api/positions/');
+                positions = await res.json();
+                positions.forEach(pos => {
+                    const option = document.createElement('option');
+                    option.value = pos.id;
+                    option.textContent = `${pos.job_title} (${pos.domain})`;
+                    positionSelect.appendChild(option);
+                });
+            } catch (err) {
+                console.error('Failed to load positions:', err);
+            }
+        }
+
+        // Auto-fill fields when a position is selected
+        positionSelect.addEventListener('change', () => {
+            const selected = positions.find(p => p.id == positionSelect.value);
+            if (selected) {
+                domainInput.value = selected.domain;
+                mandatorySkills.value = selected.mandatory_skills.join('\n');
+                optionalSkills.value = selected.optional_skills.join('\n');
+                jdFile.value = selected.jd_file_url;
+                interviewInstructions.value = selected.interview_instructions;
+            } else {
+                domainInput.value = '';
+                mandatorySkills.value = '';
+                optionalSkills.value = '';
+                jdFile.value = '';
+                interviewInstructions.value = '';
+            }
+        });
+
+        loadPositions();
+
+        // Submit candidate
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(form);
+
+            try {
+                const res = await fetch('/api/candidates/', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrftoken },
+                    body: formData
+                });
+                const data = await res.json();
+                responseEl.textContent = JSON.stringify(data, null, 2);
+            } catch (err) {
+                responseEl.textContent = 'Error: ' + err;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Generate Job Description</title>
+</head>
+<body>
+    <h2>Generate Job Description</h2>
+    <form id="jdForm" method="post">
+        {% csrf_token %}
+        <input type="text" name="job_title" placeholder="Job Title" required><br/><br/>
+        <input type="text" name="domain" placeholder="Domain" required><br/><br/>
+        <input type="number" name="experience" placeholder="Experience (years)" required><br/><br/>
+        <label>Format:
+            <select name="format">
+                <option value="pdf">PDF</option>
+                <option value="docx">DOCX</option>
+            </select>
+        </label><br/><br/>
+        <button type="submit">Generate JD</button>
+    </form>
+
+    <h3>Job Description Preview:</h3>
+<pre id="preview"></pre>
+<button id="downloadBtn" style="display:none;">Download JD</button>
+
+<script>
+const form = document.getElementById('jdForm');
+const previewEl = document.getElementById('preview');
+const downloadBtn = document.getElementById('downloadBtn');
+
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+        const res = await fetch('/api/generate-jd-preview/', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!res.ok) throw new Error('Network response was not ok');
+
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+
+        // Show JD preview line by line
+        previewEl.textContent = data.jd_lines.join('\n');
+
+        // Show download button
+        downloadBtn.style.display = 'block';
+        downloadBtn.onclick = () => {
+            alert('Here you can call your PDF/DOCX download API');
+        };
+
+    } catch (err) {
+        previewEl.textContent = 'Error: ' + err;
+    }
+});
+</script>
+</body>
+</html>

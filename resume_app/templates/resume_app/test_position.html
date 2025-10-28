@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Position</title>
+</head>
+<body>
+    <h2>Create New Position</h2>
+    <form id="positionForm" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label>Job Title: <input type="text" name="job_title" required /></label><br/><br/>
+        <label>Domain: <input type="text" name="domain" required /></label><br/><br/>
+        <label>Experience From: <input type="number" name="exp_from" required /></label><br/><br/>
+        <label>Experience To: <input type="number" name="exp_to" required /></label><br/><br/>
+        <label>Job Description File: <input type="file" name="job_description_file" accept=".pdf,.docx" required /></label><br/><br/>
+        <label>Interview Instructions: <textarea name="interview_instructions"></textarea></label><br/><br/>
+        <button type="submit">Create Position</button>
+    </form>
+
+    <h3>Response:</h3>
+    <pre id="response"></pre>
+
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let cookie of cookies) {
+                    cookie = cookie.trim();
+                    if (cookie.startsWith(name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        const csrftoken = getCookie('csrftoken');
+        const form = document.getElementById('positionForm');
+        const responseEl = document.getElementById('response');
+
+        form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+
+    try {
+        const res = await fetch('/api/positions/', {  // ✅ absolute path
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrftoken },
+            body: formData
+        });
+
+        if (!res.ok) {
+            const text = await res.text();  // fallback to see HTML error if something goes wrong
+            throw new Error(text);
+        }
+
+        const data = await res.json();
+        responseEl.textContent = JSON.stringify(data, null, 2);
+    } catch (err) {
+        responseEl.textContent = 'Error: ' + err;
+    }
+});
+
+    </script>
+</body>
+</html>
