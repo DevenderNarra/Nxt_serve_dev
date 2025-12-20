@@ -1,6 +1,6 @@
 from django.urls import path
 from django.views.generic import TemplateView
-from .views import PositionCreateView, PositionDetailView, CandidateCreateView, test_position, test_candidate, test_jd, GenerateJDPreviewView, GenerateJDFileView,EmployerSignupView, InterviewerSignupView,test_employer_signup, test_interviwer_signup, LoginView
+from .views import PositionCreateView, PositionDetailView, CandidateCreateView, test_position, test_candidate, test_jd, GenerateJDPreviewView, GenerateJDFileView,EmployerSignupView, InterviewerSignupView,test_employer_signup, test_interviwer_signup, LoginView , InterviewListView
 
 urlpatterns = [
     path('employer-signup/', EmployerSignupView.as_view(), name='signup-employer'),
@@ -23,5 +23,5 @@ path('test/jd/', test_jd, name='test-jd'),
 # path('generate-jd-preview/', GenerateJDPreviewView.as_view(), name='generate_jd_preview'),
 path('generate-jd-preview/', GenerateJDPreviewView.as_view(), name='generate-jd-preview'),
 path('generate-jd-file/', GenerateJDFileView.as_view(), name='generate_jd_file'),
-
+path('interviews/', InterviewListView.as_view(), name='interview-list'),
 ]

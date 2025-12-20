@@ -7,7 +7,7 @@ from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Position, Candidate
+from .models import Position, Candidate , Interview
 import google.generativeai as genai
 from django.shortcuts import render
 from django.http import HttpResponse
@@ -17,7 +17,8 @@ from django.utils.decorators import method_decorator
 from rest_framework.permissions import AllowAny
 from rest_framework import status
 from rest_framework_simplejwt.views import TokenObtainPairView
-from .serializers import EmployerSignupSerializer, InterviewerSignupSerializer, MyTokenObtainPairSerializer
+from rest_framework import status, permissions
+from .serializers import EmployerSignupSerializer, InterviewerSignupSerializer, MyTokenObtainPairSerializer , InterviewSerializer
 
 class LoginView(TokenObtainPairView):
     permission_classes = [AllowAny]
@@ -412,3 +413,23 @@ class GenerateJDPreviewView(APIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class InterviewListView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        # Admin can see all interviews
+        if request.user.role == 'admin':
+            interviews = Interview.objects.all()
+        # Employer sees only their own interviews
+        elif request.user.role == 'employer':
+            interviews = Interview.objects.filter(employer=request.user)
+        # Interviewer sees interviews assigned to them
+        elif request.user.role == 'interviewer':
+            interviews = Interview.objects.filter(interviewer=request.user)
+        else:
+            return Response({"error": "Invalid user role"}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = InterviewSerializer(interviews, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

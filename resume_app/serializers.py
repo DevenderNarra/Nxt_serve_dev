@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User
+from .models import User, Position, Candidate, Interview
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -72,3 +72,21 @@ class InterviewerSignupSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         return user
+
+class InterviewSerializer(serializers.ModelSerializer):
+    interview_id = serializers.IntegerField(source='id', read_only=True)
+    posted_by = serializers.CharField(source='employer.username', read_only=True)
+    job_title = serializers.CharField(source='position.job_title', read_only=True)
+    candidate_name = serializers.CharField(source='candidate.name', read_only=True)
+
+    class Meta:
+        model = Interview
+        fields = [
+            'interview_id',
+            'posted_by',
+            'created_at',
+            'job_title',
+            'candidate_name',
+            'preferred_timings',
+            'status',
+        ]

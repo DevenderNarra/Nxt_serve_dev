@@ -75,3 +75,36 @@ class Candidate(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Interview(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('scheduled', 'Scheduled'),
+        ('completed', 'Completed'),
+        ('rejected', 'Rejected'),
+    ]
+
+    employer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='interviews_posted',
+        limit_choices_to={'role': 'employer'}
+    )
+    candidate = models.ForeignKey('Candidate', on_delete=models.CASCADE, related_name='interviews')
+    position = models.ForeignKey('Position', on_delete=models.CASCADE, related_name='interviews')
+    interviewer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name='interviews_taken',
+        null=True, blank=True,
+        limit_choices_to={'role': 'interviewer'}
+    )
+
+    preferred_timings = models.CharField(max_length=255, blank=True, null=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Interview #{self.id} - {self.candidate.name} ({self.status})"
